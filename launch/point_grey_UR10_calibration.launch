@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<launch>
+
+	<arg name="calibration_name" default="point_grey_ur10"/>
+
+	<!-- CAMERA TOPICS -->
+	<!-- launch the ar tracker, units in cm, adjust at will -->
+	<arg name="marker_size" default="3" />
+	<arg name="max_new_marker_error" default="0.08" />
+	<arg name="max_track_error" default="0.2" />
+
+	<arg name="cam_image_topic" default="/camera/image_rect" />
+	<arg name="cam_info_topic" default="/camera/camera_info" />
+	<arg name="output_frame" default="/camera" />  
+
+	<node name="ar_track_alvar" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen" args="$(arg marker_size) $(arg max_new_marker_error) $(arg max_track_error) $(arg cam_image_topic) $(arg cam_info_topic) $(arg output_frame)" />
+
+	<!-- launch the pointgrey sensor with rectified image -->
+	<include file="$(find pointgrey_camera_driver)/launch/camera.launch">
+		<arg name="camera_serial" value="13125050" />
+		<arg name="calibrated" value="1" />
+	</include>
+	<group ns="camera">
+		<node name="image_rectifier" pkg="image_proc" type="image_proc"/>
+	</group>
+
+	<!-- ROBOT TOPICS -->
+	<!-- UR HWiface -->
+	<!-- robot description -->
+	<param name="robot_description" command="$(find xacro)/xacro --inorder $(find stella_robot)/urdf/stella.urdf.xacro"/>
+	<!-- controller configurations -->
+	<rosparam file="$(find stella_robot)/config/controllers.yaml" command="load"/>
+	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+		<param name="use_gui" value="false"/>
+		<rosparam param="source_list">[/simple_gripper/joint_states,/simple_arm/joint_states]</rosparam>
+	</node>
+	<param name="publish_frequency" value="100"/>
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+	<group ns="simple_arm">
+		<param name="robot_description" command="$(find xacro)/xacro --inorder $(find stella_robot)/urdf/stella.urdf.xacro"/>
+		<node name="ur_hardware_interface" pkg="ur_modern_driver" type="ur_driver" output="screen">
+			<param name="robot_ip_address" type="str" value="10.8.1.10"/>
+			<param name="min_payload" type="double" value="0.0"/>
+			<param name="max_payload" type="double" value="3.0"/>
+			<param name="max_velocity" type="double" value="10.0"/> <!-- [rad/s] -->
+			<param name="use_ros_control" type="bool" value="True"/>
+			<param name="prefix" value="simple_arm" />
+		</node>
+		<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller force_torque_sensor_controller pos_based_pos_traj_controller" />
+	</group>
+
+	<!-- CALIBRATION SETUP -->
+	<param name="frame_id" value="camera" />
+	<param name="ar_marker_frame" value="ar_marker_0" />
+	<param name="child_frame_id" value="world" />
+	<param name="calibrator_frame" value="point_grey_marker"/>
+	<param name="calibration_name" value="$(arg calibration_name)"/>
+	<node name="ur10_point_grey_calibrator" pkg="calibration" type="simple_calibrator" respawn="true" output="screen"/>
+
+	<node name="calibration_rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find calibration)/launch/ptgrey_ur10.rviz" output="screen"/>
+</launch>

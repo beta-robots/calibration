@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+	<arg name="calibration_name" default="point_grey_ur10"/>
+
+	<rosparam command="load" file="$(find calibration)/config/$(arg calibration_name).yaml" />
+	<param name="calibration_name" value="$(arg calibration_name)"/>
+	<param name="start_broadcast" value="true"/>
+	<node  name="point_grey_ur10_tf_broadcaster" pkg="calibration" type="simple_calibrator" respawn="true" output="screen" />
+
+</launch>

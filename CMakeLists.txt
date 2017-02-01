@@ -103,9 +103,9 @@ include_directories(include
 )
 
 ## Declare a cpp library
-add_library(calibration
-   src/Calibration.cpp
-)
+#add_library(calibration
+#   src/Calibration.cpp
+#)
 
 ## Declare a cpp executable
 add_executable(simple_calibrator src/simple_calibrator.cpp)
@@ -124,28 +124,28 @@ target_link_libraries(average_calibrator ${catkin_LIBRARIES})
 # )
 
 # declare the source files that contains your executable code
-add_executable(calibration_test
-  test/calibration_test.cpp
-)
-add_executable(calibration_test_noise
-  test/calibration_test_noise.cpp
-)
+# add_executable(calibration_test
+#   test/calibration_test.cpp
+# )
+# add_executable(calibration_test_noise
+#   test/calibration_test_noise.cpp
+# )
 
 # declare any dependencies that need to be built before compiling your executable
-add_dependencies(calibration_test
-  calibration
-)
-add_dependencies(calibration_test_noise
-  calibration
-)
+# add_dependencies(calibration_test
+#   calibration
+# )
+# add_dependencies(calibration_test_noise
+#   calibration
+# )
 
 # declare the libraries your executable needs to be linked against to
-target_link_libraries (calibration_test
-  calibration
-)
-target_link_libraries (calibration_test_noise
-  calibration
-)
+# target_link_libraries (calibration_test
+#   calibration
+# )
+# target_link_libraries (calibration_test_noise
+#   calibration
+# )
 
 #############
 ## Install ##
